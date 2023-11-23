@@ -1,0 +1,62 @@
+# Copyright (C) 2017 Mikael Carlavan <contact@mika-carl.fr>
+# Copyright (C) 2022 Julien Marchand <julien.marchand@iouston.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+#
+# Générique
+#
+
+# Module label 'ModuleDolishop_GSName'
+ModuleDolishop_GSName = Google Shopping
+# Module description 'ModuleDolishop_GSDesc'
+ModuleDolishop_GSDesc = Génère un flux xml des produits dolishop pour google shopping
+Dolishop_GS = Dolishop_GS
+#
+# Page d'administration
+#
+Dolishop_GSSetup = Configuration du module
+Settings = Réglages
+Dolishop_GSSetupPage = Page de réglage du module
+Dolishop_GSOptions = Options
+Description = Description
+Value = Valeur
+Action = Action
+GenerateCatalogue = Générer le flux pour google shopping
+DescDOLISHOP_GS_SOURCE_CAT_ID = Catégorie des produits
+Dolishop_GSXmlLink = Lien vers le fichier XML
+
+#
+# Page À propos
+#
+About = À propos
+Dolishop_GSAbout = À propos du module
+Dolishop_GSAboutPage = Page à propos du module
+Dolishop_GSAboutDescLong = Ce module a été développé par <a href="http://www.iouston.com">Julien Marchand</a> pour <a href="http://www.iouston.com">iouston informatique</a>.<br />La documentation du module est disponible en ligne :<br /><a href="%s">%s</a>
+MaintenanceAndSupportTitle = Maintenance et support
+MaintenanceAndSupportDescLong = Aucun support à l'utilisation ou à l'installation n'est fourni. Si besoin, nous pouvons vous accompagner moyennant la prise en charge par vos soins du coût de l’intervention. <br />L'achat de ce module vous permet d'obtenir une maintenance corrective durant un an à compter de la date d'acquisition. Les <a href="https://iouston.space/gestion/ticketsup/public/">demandes de support doivent être réalisées via notre plateforme de support</a>.
+UpdateTitle = Mise à jour
+UpdateDescLong = L'achat de ce module vous permet d'obtenir gratuitement les mises à jour du module pendant 1 an à compter de la date d’achat du module.
+ModulesTitle = Nos autres modules :
+ModulesDescLong = Retrouvez tous <a href="http://www.iouston.com/systeme-gestion-entreprise-dolibarr/modules-dolibarr/">nos autres modules sur notre site</a> et sur <a href="https://www.dolistore.com/fr/recherche?controller=search&orderby=position&orderway=desc&search_query=iouston&submit_search=">dolistore</a>.
+IoustonDesc = Spécialiste dolibarr : Intégration sur mesure, développement spécifique, formation, maintenance.
+
+# ChangeLog
+Dolishop_GSChangeLog = ChangeLog
+Dolishop_GSChangeLogVersion = Version
+Dolishop_GSChangeLogDate = Date
+Dolishop_GSChangeLogUpdates = Modification apportées
+Dolishop_GSFirstVersion = Première version
+#
+Multicolore = Multicolore
