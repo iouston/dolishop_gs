@@ -97,7 +97,7 @@ class Dolishop_GS extends CommonObject
      * Specifications → https://support.google.com/merchants/answer/7052112?hl=fr#before_you_begin&zippy=%2Cautres-exigences%2Cmettre-en-forme-vos-donn%C3%A9es-produit
      *
      */
-    function generateCatalogue()
+    function generateCatalogue($id)
     {
         
         global $conf, $langs, $user, $db, $mysoc;
@@ -105,12 +105,16 @@ class Dolishop_GS extends CommonObject
         $categoryId = $conf->global->DOLISHOP_GS_SOURCE_CAT_ID;
         $link = '';
 
-        $shop = new DoliShopEntity($db);
-        $shopid = 1; // Déplacer le bouton de générate catalogue dans l'onglet SEO ou dans un nouvel onglet pour préciser la boutique
-        $shop->fetch($shopid);
+        $entity = new DoliShopEntity($db);
+        $entity->fetch($id);
 
-        $categorie = new Categorie($db);
-        if ($categorie->fetch($categoryId) > 0) {
+        $_SERVER['SERVER_NAME'] = $entity->domain;
+
+        $dolishop = DoliShop::getInstance($db);
+        $fk_category = $dolishop->entity->fk_category;
+        $categorie = DoliShopHelper::getCategory($fk_category);
+
+        if ($categorie) {
             $path = $this->getCatalogueXMLPath();
 
             $realpath = dol_buildpath($path, 0);
@@ -156,8 +160,8 @@ class Dolishop_GS extends CommonObject
 
                         // Link
                         $item = $doc->createElement('link');
-                        $item->appendChild($doc->createCDATASection('Narrive pas à sortir URL'));
-                        //$item->appendChild($doc->createCDATASection(DoliShopHelper::route('product.show', $product))); // Passe le site en maintenance...je ne comprends pas pourquoi
+                        //$item->appendChild($doc->createCDATASection('Narrive pas à sortir URL'));
+                        $item->appendChild($doc->createCDATASection(DoliShopHelper::route('product.show', $product))); // Passe le site en maintenance...je ne comprends pas pourquoi
                         $node->appendChild($item);
                                                 
 
