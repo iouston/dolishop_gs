@@ -111,7 +111,8 @@ class Dolishop_GS extends CommonObject
         $_SERVER['SERVER_NAME'] = $entity->domain;
 
         $dolishop = DoliShop::getInstance($db);
-        $fk_category = $dolishop->entity->fk_category;
+        //$fk_category = $dolishop->entity->fk_category; //categorie de la boutique, souvent vide à cause du menu, nécessite de parser les sous cat
+        $fk_category =$categoryId;
         $categorie = DoliShopHelper::getCategory($fk_category);
 
         if ($categorie) {

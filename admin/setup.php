@@ -112,7 +112,7 @@ if ($action == 'del_DOLISHOP_GS_PUSH_NOTIFICATIONS') {
         }
     }
 } else if ($action == 'build') {
-    $dolishop_gs->generateCatalogue();
+    $dolishop_gs->generateCatalogue(2);
 }
 
 /*
