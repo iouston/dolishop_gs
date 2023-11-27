@@ -106,7 +106,7 @@ class Dolishop_GS extends CommonObject
         $link = '';
 
         $entity = new DoliShopEntity($db);
-        $entity->fetch($id);
+        $entity->fetch($id);  
 
         $_SERVER['SERVER_NAME'] = $entity->domain;
 
@@ -124,13 +124,16 @@ class Dolishop_GS extends CommonObject
 
             $doc = new DOMDocument();
 
-            $catalogue = $doc->createElement('catalogue');
+            $catalogue = $doc->createElement('rss');
             $catalogue->setAttribute( "lang", "FR" );
             $catalogue->setAttribute( "version", "2.0" );
             $catalogue->setAttribute( "GMT", "+1" );
             $catalogue->setAttribute("date", dol_print_date(dol_now(), "%Y-%m-%d %H:%M"));
-
-
+            
+            $channel = $doc->createElement('channel');
+            $channel->appendChild($doc->createElement('title', 'Flux XML')); 
+            $channel->appendChild($doc->createElement('description', 'Un flux xml pour Google Merchant Center généré par dolibarr dolishop'));
+            
             if (count($products)) {
                 foreach ($products as $product) {
 
@@ -140,10 +143,10 @@ class Dolishop_GS extends CommonObject
                         $array_options = $product->array_options;
                         $product->load_stock();
 
-                        $node = $doc->createElement('product');
+                        $node = $doc->createElement('item');
 
                         //ID
-                        $node->appendChild($doc->createElement('id', $product->id));
+                        $node->appendChild($doc->createElementNS('http://base.google.com/ns/1.0', 'g:id', $product->id));
                         
                         //Title
                         if ($product->label) {
@@ -160,9 +163,7 @@ class Dolishop_GS extends CommonObject
                         }
 
                         // Link
-                        $item = $doc->createElement('link');
-                        //$item->appendChild($doc->createCDATASection('Narrive pas à sortir URL'));
-                        $item->appendChild($doc->createCDATASection(DoliShopHelper::route('product.show', $product))); // Passe le site en maintenance...je ne comprends pas pourquoi
+                        $item->appendChild($doc->createElementNS('http://base.google.com/ns/1.0', 'link', DoliShopHelper::route('product.show', $product)));
                         $node->appendChild($item);
                                                 
 
@@ -175,19 +176,19 @@ class Dolishop_GS extends CommonObject
 
                         if (count($images)) {
                             foreach ($images as $i => $image) {
-                                $node_name = $i > 0 ? 'additional_image_link' : 'image_link';
+                                $node_name = $i > 0 ? 'g:additional_image_link' : 'g:image_link';
                                 $url = DOL_MAIN_URL_ROOT.'/viewimage.php?modulepart=medias&file='.urlencode($image->filename);
-                                $item = $doc->createElement($node_name);
+                                $item->appendChild($doc->createElementNS('http://base.google.com/ns/1.0', $node_name));
+                                //$item = $doc->createElement($node_name);
                                 $item->appendChild($doc->createCDATASection($url));
                                 $node->appendChild($item);
                             }
                         }    
 
                         //disponibilité / availability
-                        $disponibilité = $product->stock_reel > 0 ? $doc->createCDATASection('in_stock') : $doc->createCDATASection('out_of_stock');
-                        $item = $doc->createElement('availability');
-                        $item->appendChild($disponibilité);
-                        $node->appendChild($item);                        
+                        $disponibilite = $product->stock_reel > 0 ? 'in_stock' : 'out_of_stock';
+                        $node->appendChild($doc->createElementNS('http://base.google.com/ns/1.0', 'g:availability', $disponibilite));
+
 
                         // Prix niveau 1
                         $level = 1;
@@ -196,13 +197,13 @@ class Dolishop_GS extends CommonObject
                         } else {
                             $prix = $product->price_ttc;
                         }
-                        $node->appendChild($doc->createElement('price', $prix.' '.$conf->currency));
+                        $node->appendChild($doc->createElementNS('http://base.google.com/ns/1.0', 'g:price', $prix.' '.$conf->currency));
 
                         //Prix soldé
                         if(isset($array_options['options_dolishop_prix_barre'])){
                         $prix_barre = isset($array_options['options_dolishop_prix_barre']) ? $array_options['options_dolishop_prix_barre'] : '';
                         $prix_barre = price2num($prix_barre);
-                        $node->appendChild($doc->createElement('sale_price', $prix_barre.' '.$conf->currency));    
+                        $node->appendChild($doc->createElementNS('http://base.google.com/ns/1.0', 'g:sale_price', $prix_barre.' '.$conf->currency));    
                         }
                         
 
@@ -253,15 +254,13 @@ class Dolishop_GS extends CommonObject
                         $value = isset($array_options['options_dolishop_marque']) ? $array_options['options_dolishop_marque'] : '';
                         $brand = $extrafields->showOutputField('dolishop_marque', $value, '', $product->table_element);
                         if ($brand) {
-                            $item = $doc->createElement('marque');
-                            $item->appendChild($doc->createCDATASection($marque));
-                            $node->appendChild($item);
+                            $node->appendChild($doc->createElementNS('http://base.google.com/ns/1.0', 'g:brand', $brand)); 
                         }
                        
                         //GTIN (ean, code barre)
                         if(isset($product->barcode)){
                         $gtin = isset($product->barcode) ? $product->barcode : '';              
-                        $node->appendChild($doc->createElement('gtin', $product->barcode));    
+                        $node->appendChild($doc->createElementNS('http://base.google.com/ns/1.0', 'g:gtin', $product->barcode));    
                         }
                         
                         //mpn (ean, code barre)
@@ -273,32 +272,33 @@ class Dolishop_GS extends CommonObject
                         * Ne fournissez la référence fabricant que si vous la connaissez. En cas de doute, ne spécifiez pas cet attribut (par exemple, ne fournissez pas de valeur approximative ou devinée).
                         * Si vous envoyez un produit dont la référence fabricant est incorrecte, il sera refusé.**/
 
-                        $node->appendChild($doc->createElement('mpn', 'unknown')); // A préciser, ref fournisseur ? champ spécifique ?
+                        $node->appendChild($doc->createElementNS('http://base.google.com/ns/1.0', 'g:mpn', 'unknown')); 
                         
                         //identifier_exists
                         /**
                          * Indique si les codes produit uniques (CPU), le code GTIN, la référence fabricant et la marque sont disponibles pour votre produit
                          */
 
-                         $node->appendChild($doc->createElement('identifier_exists', 'no')); // Forcé à no pour le moment, car pas mpn pour le moment
+                          $node->appendChild($doc->createElementNS('http://base.google.com/ns/1.0', 'g:identifier_exists', 'no')); // Forcé à no pour le moment, car pas mpn pour le moment
 
                          //Etat du produit
                         $condition = isset($array_options['options_dolishop_condition']) ? $array_options['options_dolishop_condition'] : 'new';
-                        $node->appendChild($doc->createElement('condition', $condition));
+                        $node->appendChild($doc->createElementNS('http://base.google.com/ns/1.0', 'g:condition', $condition));
+
 
                         //Réservé aux adultes
                         $adult_only = isset($array_options['options_dolishop_adult_only']) ? 'yes' : 'no';
-                        $node->appendChild($doc->createElement('adult', $adult_only));
-                        
+                        $node->appendChild($doc->createElementNS('http://base.google.com/ns/1.0', 'g:adult', $adult_only));
+
                         //Est ce que c'est un lot ?
                         $is_bundle = isset($array_options['options_dolishop_is_bundle']) ? 'yes' : 'no';
-                        $node->appendChild($doc->createElement('is_bundle', $is_bundle));
+                        $node->appendChild($doc->createElementNS('http://base.google.com/ns/1.0', 'g:is_bundle', $is_bundle));
 
                         //Multipack
                         // Nombre de produits dans le lot (par exemple pack de 6)
                         if(isset($array_options['options_dolishop_multipack']) && $is_bundle=='yes'){
                         $multipack = isset($array_options['options_dolishop_multipack']) ? $array_options['options_dolishop_multipack'] : '';
-                        $node->appendChild($doc->createElement('multipack', $multipack));    
+                        $node->appendChild($doc->createElementNS('http://base.google.com/ns/1.0', 'g:multipack', $multipack));    
                         }
                         
 
@@ -308,22 +308,20 @@ class Dolishop_GS extends CommonObject
                          */
                         if(isset($array_options['options_dolishop_age_group'])){
                         $age_group = isset($array_options['options_dolishop_age_group']) ? $array_options['options_dolishop_age_group'] : '';
-                        $node->appendChild($doc->createElement('age_group', $age_group));
+                        $node->appendChild($doc->createElementNS('http://base.google.com/ns/1.0', 'g:age_group', $age_group)); 
                         }    
 
                         //Color
                         $value = isset($array_options['options_dolishop_couleur']) ? $array_options['options_dolishop_couleur'] : '';
                         $couleurs = $extrafields->showOutputField('dolishop_couleur', $value, '', $product->table_element);
                         if ($couleurs) {
-                            $item = $doc->createElement('color');
-                            $item->appendChild($doc->createCDATASection($couleurs));
-                            $node->appendChild($item);
+                        $node->appendChild($doc->createElementNS('http://base.google.com/ns/1.0', 'g:color', $couleurs));     
                         }
                         
                         //Gender
                         if(isset($array_options['options_dolishop_gender'])){
                         $gender = isset($array_options['options_dolishop_gender']) ? $array_options['options_dolishop_gender'] : '';
-                        $node->appendChild($doc->createElement('gender', $gender));
+                        $node->appendChild($doc->createElementNS('http://base.google.com/ns/1.0', 'g:gender', $gender)); 
                         }
                         
 
@@ -334,7 +332,7 @@ class Dolishop_GS extends CommonObject
                         $material = isset($array_options['options_dolishop_material']) ? $array_options['options_dolishop_material'] : '';
                         $material= str_replace(', ',',',$material);
                         $material= str_replace(',','/',$material);
-                        $node->appendChild($doc->createElement('material', $material));   
+                        $node->appendChild($doc->createElementNS('http://base.google.com/ns/1.0', 'g:material', $material));    
                         }
                         
                         //item_group_id
@@ -346,36 +344,36 @@ class Dolishop_GS extends CommonObject
                         $parentid = DoliShopHelper::getParentProductId($product);
                         if($parentid>0){
                         $item_group_id = !empty($parentid) ? $parentid : '';     
-                        $node->appendChild($doc->createElement('item_group_id', $item_group_id));    
+                        $node->appendChild($doc->createElementNS('http://base.google.com/ns/1.0', 'g:item_group_id', $item_group_id));    
                         }
                         
                         //Dimensions et mesures du produit
                         //lenght
                         if(isset($product->length)){            
                         $length = floatval($product->length)/(10^intval($product->length_units));
-                        $node->appendChild($doc->createElement('product_length', $length.' cm'));
+                        $node->appendChild($doc->createElementNS('http://base.google.com/ns/1.0', 'g:product_length', $length.' cm'));
                         }
 
                         //width
                         if(isset($product->width)){
                         $width = floatval($product->width)/(10^intval($product->width_units));
-                        $node->appendChild($doc->createElement('product_width', $width.' cm'));
+                        $node->appendChild($doc->createElementNS('http://base.google.com/ns/1.0', 'g:product_width', $width.' cm'));
                         }
 
                         //height
                         if(isset($product->height)){
                         $height = floatval($product->height)/(10^intval($product->height_units));
-                        $node->appendChild($doc->createElement('product_height', $height.' cm'));
+                        $node->appendChild($doc->createElementNS('http://base.google.com/ns/1.0', 'g:product_height', $height.' cm'));
                         }
 
                         //weight
                         if(isset($product->weight)){
                         $weight = floatval($product->weight)/(10^intval($product->weight_units));
-                        $node->appendChild($doc->createElement('product_weight', $weight.' kg'));
+                        $node->appendChild($doc->createElementNS('http://base.google.com/ns/1.0', 'g:product_weight', $weight.' cm'));
                         }
 
                         //external_seller_id
-                        $node->appendChild($doc->createElement('external_seller_id', $shop->name));               
+                        $node->appendChild($doc->createElementNS('http://base.google.com/ns/1.0', 'g:external_seller_id', $shop->name));              
 
                         //shipping
                         //A intégrer, pas très clair dans la doc google
@@ -390,7 +388,7 @@ class Dolishop_GS extends CommonObject
 
                         //Ships_from_country
                         $ships_from_country = $mysoc->country_code; //TODO, prévoir une option dans la boutique
-                        $node->appendChild($doc->createElement('ships_from_country', $ships_from_country));
+                        $node->appendChild($doc->createElementNS('http://base.google.com/ns/1.0', 'g:ships_from_country', $ships_from_country));
                         
                         // $country_id = $product->country_id;
                         // $country = $country_id > 0 ? dol_getIdFromCode($db, $country_id, 'c_country', 'rowid', 'label') : '';
@@ -438,7 +436,9 @@ class Dolishop_GS extends CommonObject
                         //     $node->appendChild($item);
                         // }
 
-                        $catalogue->appendChild($node);
+                        
+                        $channel->appendChild($node);
+                        $catalogue->appendChild($channel);
                     }
                     
                 }
