@@ -163,9 +163,9 @@ class Dolishop_GS extends CommonObject
                         }
 
                         // Link
-                        $item->appendChild($doc->createElementNS('http://base.google.com/ns/1.0', 'link', DoliShopHelper::route('product.show', $product)));
+                        $item = $doc->createElementNS('http://base.google.com/ns/1.0', 'link', DoliShopHelper::route('product.show', $product));
                         $node->appendChild($item);
-                                                
+
 
                         // Images
                         $images = array();
@@ -178,8 +178,7 @@ class Dolishop_GS extends CommonObject
                             foreach ($images as $i => $image) {
                                 $node_name = $i > 0 ? 'g:additional_image_link' : 'g:image_link';
                                 $url = DOL_MAIN_URL_ROOT.'/viewimage.php?modulepart=medias&file='.urlencode($image->filename);
-                                $item->appendChild($doc->createElementNS('http://base.google.com/ns/1.0', $node_name));
-                                //$item = $doc->createElement($node_name);
+                                $item = $doc->createElementNS('http://base.google.com/ns/1.0', $node_name);
                                 $item->appendChild($doc->createCDATASection($url));
                                 $node->appendChild($item);
                             }
