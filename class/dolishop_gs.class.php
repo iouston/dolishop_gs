@@ -177,7 +177,7 @@ class Dolishop_GS extends CommonObject
                         if (count($images)) {
                             foreach ($images as $i => $image) {
                                 $node_name = $i > 0 ? 'g:additional_image_link' : 'g:image_link';
-                                $url = DOL_MAIN_URL_ROOT.'/viewimage.php?modulepart=medias&file='.urlencode($image->filename);
+                                $url = DolishopHelper::url('viewimage.php?modulepart=productgallery&file='.urlencode($image->filename));
                                 $item = $doc->createElementNS('http://base.google.com/ns/1.0', $node_name);
                                 $item->appendChild($doc->createCDATASection($url));
                                 $node->appendChild($item);
